@@ -27,8 +27,9 @@ jobs:
     steps:
       - name: Debug Snowflake Account
         run: |
-          echo "Account name = ${#SNOWFLAKE_ACCOUNT}"
+          echo "Account length = ${#SNOWFLAKE_ACCOUNT}"
           echo "User length = ${#SNOWFLAKE_USER}"
+          echo "Acct name = ${{ secrets.SNOWFLAKE_ACCOUNT }}"
           
       - name: Checkout Repository
         uses: actions/checkout@v4
