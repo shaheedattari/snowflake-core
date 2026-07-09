@@ -4,8 +4,10 @@ name: snowflake-migration-demo
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+    paths:
+      - 'deploy/**'
 
 jobs:
   deploy-dev:
