@@ -1,6 +1,7 @@
 import os
 import subprocess
 import snowflake.connector
+from datetime import datetime
 
 print("Connecting to Snowflake...")
 
@@ -17,7 +18,31 @@ cur = conn.cursor()
 try:
 
     target_db = os.environ["TARGET_DATABASE"]
-
+    
+    # git log history insert starts 
+    cur.execute("""
+    INSERT INTO DEPLOYMENT_HISTORY
+    (
+        GIT_TAG,
+        GIT_COMMIT_ID,
+        GIT_BRANCH,
+        DEPLOY_TIME,
+        DEPLOYED_BY,
+        DATABASE_NAME,
+        STATUS
+    )
+    VALUES (%s,%s,%s,%s,%s,%s,%s)
+    """,
+    (
+        os.getenv("GITHUB_REF_NAME"),
+        os.getenv("GITHUB_SHA"),
+        os.getenv("GITHUB_REF"),
+        datetime.now(),
+        os.getenv("GITHUB_ACTOR"),
+        target_db,
+        "SUCCESS"
+    ))
+    # git log history insert ends
     print(f"Deploying to {target_db}")
 
     cur.execute(f"USE DATABASE {target_db}")
