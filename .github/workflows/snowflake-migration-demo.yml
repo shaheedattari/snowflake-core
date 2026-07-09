@@ -47,5 +47,5 @@ jobs:
 
       - name: Execute Deployment
         run: |
-          # python deploy.py
+          python deploy.py
           echo "***End***"
