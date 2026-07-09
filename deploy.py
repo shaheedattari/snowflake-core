@@ -21,7 +21,7 @@ try:
     
     # git log history insert starts 
     cur.execute("""
-    INSERT INTO DEPLOYMENT_HISTORY
+    INSERT INTO BRONZE.GITHUB.DEPLOYMENT_HISTORY
     (
         GIT_TAG,
         GIT_COMMIT_ID,
