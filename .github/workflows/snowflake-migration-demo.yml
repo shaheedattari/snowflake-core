@@ -1,18 +1,17 @@
 name: snowflake-migration-demo
 
 # Controls when the action will run.
-# on:
-#   push:
-#     branches:
-#       - main
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+    paths:
+      - 'deploy/**'
+  #workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-dev:
 
     runs-on: ubuntu-latest
 
