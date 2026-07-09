@@ -25,7 +25,11 @@ jobs:
       TARGET_DATABASE: ${{ secrets.TARGET_DATABASE }}
 
     steps:
-
+      - name: Debug Snowflake Account
+        run: |
+          echo "Account length = ${#SNOWFLAKE_ACCOUNT}"
+          echo "User length = ${#SNOWFLAKE_USER}"
+          
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
