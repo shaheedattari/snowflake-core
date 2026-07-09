@@ -4,11 +4,8 @@ name: snowflake-migration-demo
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'deploy/**'
-  #workflow_dispatch:
+    tags:
+      - 'v*'
 
 jobs:
   deploy-dev:
