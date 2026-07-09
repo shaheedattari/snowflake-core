@@ -10,9 +10,10 @@ on:
   push:
     tags:
       - 'v*'
-      
+
 jobs:
   deploy:
+
     runs-on: ubuntu-latest
 
     env:
@@ -21,19 +22,14 @@ jobs:
       SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
       SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
       SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
-      TARGET_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+      TARGET_DATABASE: ${{ secrets.TARGET_DATABASE }}
 
     steps:
+
       - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Verify Secrets
-        run: |
-          echo "Account Exists: ${{ secrets.SNOWFLAKE_ACCOUNT != '' }}"
-          echo "User Exists: ${{ secrets.SNOWFLAKE_USER != '' }}"
-          echo "Password Exists: ${{ secrets.SNOWFLAKE_PASSWORD != '' }}"
-          echo "Role Exists: ${{ secrets.SNOWFLAKE_ROLE != '' }}"
-          echo "Warehouse Exists: ${{ secrets.SNOWFLAKE_WAREHOUSE != '' }}"
+        with:
+          fetch-depth: 0
 
       - name: Install Python
         uses: actions/setup-python@v5
@@ -47,4 +43,3 @@ jobs:
       - name: Execute Deployment
         run: |
           python deploy.py
-          # echo "colpleted"
