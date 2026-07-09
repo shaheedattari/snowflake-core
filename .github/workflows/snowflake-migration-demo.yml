@@ -41,5 +41,5 @@ jobs:
 
       - name: Execute Deployment
         run: |
-          #python deploy.py
-          echo "colpleted"
+          python deploy.py
+          # echo "colpleted"
