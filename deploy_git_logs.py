@@ -22,7 +22,7 @@ try:
     print(f"Deploying to {target_db}")
 
     cur.execute(f"USE DATABASE {target_db}")
-    cur.execute("USE SCHEMA GITHUB")
+    cur.execute("USE SCHEMA BRONZE")
 
     #########################################################
     # Get Git Information
