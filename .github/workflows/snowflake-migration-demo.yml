@@ -1,14 +1,18 @@
-name: snowflake-migration-demo
+##deploy.yml
+name: Snowflake Deployment
 
-# Controls when the action will run.
+permissions:
+  contents: write
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - dev
+      - main
 
 jobs:
-  deploy-dev:
+
+  deploy:
 
     runs-on: ubuntu-latest
 
@@ -21,28 +25,77 @@ jobs:
       TARGET_DATABASE: ${{ secrets.TARGET_DATABASE }}
 
     steps:
-      - name: Debug Snowflake Account
-        run: |
-          echo "Account length = ${#SNOWFLAKE_ACCOUNT}"
-          echo "User length = ${#SNOWFLAKE_USER}"
-          echo "Acct name = ${{ secrets.SNOWFLAKE_ACCOUNT }}"
-          
+
+      # Checkout complete repository with full git history
+      # Needed because deploy.py uses git diff
+
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install Python
+      # Decide which Snowflake database to deploy to
+      # develop -> DEV
+      # main    -> UAT
+
+      - name: Set Target Database
+        run: |
+          if [ "${{ github.ref_name }}" = "dev" ]; then
+            echo "TARGET_DATABASE=FIRST_TECH_DCU_D" >> $GITHUB_ENV
+          else
+            echo "TARGET_DATABASE=FIRST_TECH_DCU_U" >> $GITHUB_ENV
+          fi
+
+      # Configure Python
+
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install Snowflake Connector
+      # Install Snowflake Connector
+
+      - name: Install Dependencies
         run: |
           pip install snowflake-connector-python
 
+      # Execute deployment engine
+
       - name: Execute Deployment
         run: |
-          # python deploy.py
+          #python deploy.py
           python deploy_git_logs.py
-          echo "***End***"
+
+      # Automatically create tag only after
+      # successful deployment to UAT
+
+      - name: Create Release Tag
+        if: github.ref_name == 'main'
+        run: |
+          git fetch --tags
+          LAST_TAG=$(git tag --sort=-version:refname | head -n 1)
+
+          if [ -z "$LAST_TAG" ]; then
+            NEW_TAG="v1.0"
+          else
+            VERSION=${LAST_TAG#v}
+            MAJOR=$(echo $VERSION | cut -d. -f1)
+            MINOR=$(echo $VERSION | cut -d. -f2)
+
+            if [ -z "$MINOR" ]; then
+              MINOR=0
+            fi
+
+            MINOR=$((MINOR + 1))
+
+            NEW_TAG="v${MAJOR}.${MINOR}"
+
+          fi
+          echo "Creating Tag: $NEW_TAG"
+
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git tag $NEW_TAG
+
+          git push origin $NEW_TAG
