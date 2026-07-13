@@ -3,6 +3,10 @@ import subprocess
 import snowflake.connector
 from datetime import datetime
 
+# ----------------------------------
+# Connect to Snowflake
+# ----------------------------------
+
 print("Connecting to Snowflake...")
 
 conn = snowflake.connector.connect(
@@ -15,7 +19,15 @@ conn = snowflake.connector.connect(
 
 cur = conn.cursor()
 
+deploy_id = None
+
 try:
+
+    # ----------------------------------
+    # Target Database comes from workflow
+    # develop -> FIRST_TECH_DCU_D
+    # main    -> FIRST_TECH_DCU_U
+    # ----------------------------------
 
     target_db = os.environ["TARGET_DATABASE"]
 
@@ -24,9 +36,9 @@ try:
     cur.execute(f"USE DATABASE {target_db}")
     cur.execute("USE SCHEMA BRONZE")
 
-    #########################################################
-    # Get Git Information
-    #########################################################
+    # ----------------------------------
+    # GitHub Information
+    # ----------------------------------
 
     try:
         git_version = subprocess.check_output(
@@ -44,15 +56,12 @@ try:
     ).decode().strip()
 
     github_run_id = os.getenv("GITHUB_RUN_ID", "")
-
     github_workflow = os.getenv("GITHUB_WORKFLOW", "")
-
     github_repository = os.getenv("GITHUB_REPOSITORY", "")
-
     deployed_by = os.getenv("GITHUB_ACTOR", "")
-
     start_time = datetime.now()
-
+        
+    
     #########################################################
     # Insert RUNNING Record
     #########################################################
@@ -89,98 +98,93 @@ try:
         "RUNNING"
     ))
 
+
     #########################################################
-    # Get DEPLOY_ID
+    # Get Deployment ID
     #########################################################
 
     cur.execute("SELECT MAX(DEPLOY_ID) FROM DEPLOYMENT_HISTORY")
     deploy_id = cur.fetchone()[0]
 
-    #########################################################
-    # Existing Code
-    #########################################################
+    print(f"Deployment ID : {deploy_id}")
 
-    tags = subprocess.check_output(
-        ["git", "tag", "--sort=-version:refname"]
+    # ----------------------------------
+    # Get Changed Files
+    # ----------------------------------
+
+    changed_files = subprocess.check_output(
+        [
+            "git",
+            "diff",
+            "--name-only",
+            "HEAD~1",
+            "HEAD"
+        ]
     ).decode().splitlines()
 
-    print(f"Available tags: {tags}")
-
-    if len(tags) < 2:
-
-        print("First release detected.")
-        print("Deploying all SQL files.")
-
-        changed_files = subprocess.check_output(
-            ["git", "ls-files"]
-        ).decode().splitlines()
-
-    else:
-
-        current_tag = tags[0]
-        previous_tag = tags[1]
-
-        print(f"Comparing {previous_tag} -> {current_tag}")
-
-        changed_files = subprocess.check_output(
-            [
-                "git",
-                "diff",
-                "--name-only",
-                previous_tag,
-                current_tag
-            ]
-        ).decode().splitlines()
+    # ----------------------------------
+    # Filter SQL Files
+    # ----------------------------------
 
     sql_files = [
         f for f in changed_files
         if f.endswith(".sql")
     ]
 
-    print("Files selected for deployment:")
+    print("Changed SQL files:")
 
     for file_name in sql_files:
         print(file_name)
 
-    if len(sql_files) == 0:
-        print("No SQL files changed.")
+    # ----------------------------------
+    # No SQL Changes
+    # ----------------------------------
+
+    if not sql_files:
 
         cur.execute("""
         UPDATE DEPLOYMENT_HISTORY
         SET STATUS='NO_CHANGE',
-            END_TIME=CURRENT_TIMESTAMP,
+            END_TIME=CURRENT_TIMESTAMP(),
             FILES_DEPLOYED=0
         WHERE DEPLOY_ID=%s
-        """, (deploy_id,))
+        """,
+        (deploy_id,)
+        )
 
+        print("No SQL files found for deployment.")
         exit(0)
 
-    #########################################################
+    # ----------------------------------
     # Execute SQL Files
-    #########################################################
+    # ----------------------------------
 
     for file_name in sql_files:
 
-        print(f"Executing: {file_name}")
+        print(f"Executing : {file_name}")
 
         with open(file_name, "r", encoding="utf-8") as f:
             sql_script = f.read()
-
-        if len(sql_script.strip()) == 0:
+        #additional check
+        if not sql_script.strip():
+            print(f"Skipping Empty File : {file_name}")
             continue
 
-        cur.execute(sql_script)
+        cur.execute(
+            sql_script,
+            num_statements=0
+        )
 
-        print(f"Completed: {file_name}")
+        print(f"Completed : {file_name}")
 
-    #########################################################
-    # Update SUCCESS
-    #########################################################
+    # ----------------------------------
+    # Deployment Successful
+    # ----------------------------------
 
     cur.execute("""
     UPDATE DEPLOYMENT_HISTORY
     SET STATUS='SUCCESS',
-        END_TIME=CURRENT_TIMESTAMP,
+        END_TIME=CURRENT_TIMESTAMP(),
         FILES_DEPLOYED=%s
     WHERE DEPLOY_ID=%s
     """,
@@ -189,21 +193,18 @@ try:
         deploy_id
     ))
 
-    print("Deployment Successful!")
+    print("Deployment Successful")
 
 except Exception as e:
 
-    print(str(e))
+    print(e)
 
-    #########################################################
-    # Update FAILED
-    #########################################################
+    if deploy_id:
 
-    try:
         cur.execute("""
         UPDATE DEPLOYMENT_HISTORY
         SET STATUS='FAILED',
-            END_TIME=CURRENT_TIMESTAMP,
+            END_TIME=CURRENT_TIMESTAMP(),
             ERROR_MESSAGE=%s
         WHERE DEPLOY_ID=%s
         """,
@@ -211,8 +212,6 @@ except Exception as e:
             str(e),
             deploy_id
         ))
-    except:
-        pass
 
     raise
 
@@ -221,4 +220,4 @@ finally:
     cur.close()
     conn.close()
 
-    print("Snowflake connection closed.")
+    print("Snowflake Connection Closed")
