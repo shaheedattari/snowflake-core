@@ -21,6 +21,7 @@ jobs:
       SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
       SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
       SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+      TARGET_DATABASE: ${{ secrets.TARGET_DATABASE }}
 
     steps:
 
@@ -47,8 +48,9 @@ jobs:
           elif [ "${{ github.ref_name }}" = "main" ]; then
             echo "TARGET_DATABASE=FIRST_TECH_DCU_U" >> $GITHUB_ENV
           else
-            echo "Unsupported branch."
-            exit 1
+            echo "TARGET_DATABASE=FIRST_TECH_DCU_D" >> $GITHUB_ENV
+            echo "feature branch."
+            #exit 1
           fi
           echo "Target Database : $TARGET_DATABASE"
 
@@ -92,14 +94,6 @@ jobs:
           git tag --sort=-version:refname
 
       #######################################################
-      # Execute Deployment
-      #######################################################
-
-      - name: Execute Deployment
-        run: |
-          python deploy_git_logs.py
-
-      #######################################################
       # Create Git Tag
       #######################################################
 
@@ -141,3 +135,11 @@ jobs:
           git tag "$NEW_TAG"
           git push origin "$NEW_TAG"
           echo "Tag $NEW_TAG created successfully."
+
+      #######################################################
+      # Execute Deployment
+      #######################################################
+
+      - name: Execute Deployment
+        run: |
+          python deploy_git_logs.py
