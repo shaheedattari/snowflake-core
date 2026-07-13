@@ -1,0 +1,3 @@
+use schema BRONZE
+ALTER TABLE SLS_DATA
+ADD COLUMN ADDR1 varchar(100);
