@@ -94,6 +94,15 @@ jobs:
           git tag --sort=-version:refname
 
       #######################################################
+      # Execute Deployment for main branch
+      ######################################################## 
+
+      - name: Execute Deployment for main branch
+        if: github.ref_name == 'main'
+        run: |
+          python deploy_git_logs.py
+
+      #######################################################
       # Create Git Tag
       #######################################################
 
@@ -140,6 +149,7 @@ jobs:
       # Execute Deployment
       #######################################################
 
-      - name: Execute Deployment
+      - name: Execute Deployment for dev
+        if: github.ref_name != 'main' 
         run: |
           python deploy_git_logs.py
