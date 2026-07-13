@@ -244,8 +244,6 @@ except Exception as e:
         except Exception as update_error:
             print(f"Failed to update deployment history: {update_error}")
 
-    raise
-
 finally:
 
     cur.close()
