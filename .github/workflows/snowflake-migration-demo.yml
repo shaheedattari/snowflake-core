@@ -48,8 +48,9 @@ jobs:
           elif [ "${{ github.ref_name }}" = "main" ]; then
             echo "TARGET_DATABASE=FIRST_TECH_DCU_U" >> $GITHUB_ENV
           else
-            echo "Unsupported branch."
-            exit 1
+            echo "TARGET_DATABASE=FIRST_TECH_DCU_D" >> $GITHUB_ENV
+            echo "Feature branch."
+            #exit 1
           fi
           echo "Target Database : $TARGET_DATABASE"
 
