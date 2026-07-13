@@ -220,22 +220,30 @@ try:
 
 except Exception as e:
 
-    print(e)
+    print(f"Deployment failed: {e}")
 
-    if deploy_id:
-        print("Issue in deployment, updating status as FAILED")
-        cur.execute("""
-        UPDATE DEPLOYMENT_HISTORY
-        SET STATUS='FAILED',
-            END_TIME=CURRENT_TIMESTAMP(),
-            ERROR_MESSAGE=%s
-        WHERE DEPLOY_ID=%s
-        """,
-        (
-            str(e),
-            deploy_id
-        ))
-        print("Issue in deployment, updated status as FAILED")
+    if deploy_id is not None:
+
+        try:
+            print("Issue in deployment, updating status as FAILED")
+
+            cur.execute("""
+                UPDATE DEPLOYMENT_HISTORY
+                SET STATUS = 'FAILED',
+                    END_TIME = CURRENT_TIMESTAMP(),
+                    ERROR_MESSAGE = %s
+                WHERE DEPLOY_ID = %s
+            """,
+            (
+                str(e),
+                deploy_id
+            ))
+
+            print("Issue in deployment, updated status as FAILED")
+
+        except Exception as update_error:
+            print(f"Failed to update deployment history: {update_error}")
+
     raise
 
 finally:
