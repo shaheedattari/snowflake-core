@@ -97,7 +97,7 @@ jobs:
 
       - name: Execute Deployment
         run: |
-          python deploy.py
+          python deploy_git_logs.py
 
       #######################################################
       # Create Git Tag
