@@ -107,20 +107,43 @@ try:
     deploy_id = cur.fetchone()[0]
 
     print(f"Deployment ID : {deploy_id}")
+   
 
     # ----------------------------------
     # Get Changed Files
     # ----------------------------------
 
-    changed_files = subprocess.check_output(
-        [
-            "git",
-            "diff",
-            "--name-only",
-            "HEAD~1",
-            "HEAD"
-        ]
+    tags = subprocess.check_output(
+        ["git", "tag", "--sort=-version:refname"]
     ).decode().splitlines()
+
+    print(f"Available tags: {tags}")
+
+    if len(tags) < 2:
+
+        print("First release detected.")
+        print("Deploying all SQL files.")
+
+        changed_files = subprocess.check_output(
+            ["git", "ls-files"]
+        ).decode().splitlines()
+
+    else:
+
+        current_tag = tags[0]
+        previous_tag = tags[1]
+
+        print(f"Comparing {previous_tag} -> {current_tag}")
+
+        changed_files = subprocess.check_output(
+            [
+                "git",
+                "diff",
+                "--name-only",
+                previous_tag,
+                current_tag
+            ]
+        ).decode().splitlines()
 
     # ----------------------------------
     # Filter SQL Files
@@ -140,7 +163,8 @@ try:
     # No SQL Changes
     # ----------------------------------
 
-    if not sql_files:
+    if len(sql_files) == 0:
+        print("No SQL files changed.")
 
         cur.execute("""
         UPDATE DEPLOYMENT_HISTORY
