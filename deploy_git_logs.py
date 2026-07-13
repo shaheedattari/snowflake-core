@@ -173,10 +173,9 @@ try:
             FILES_DEPLOYED=0
         WHERE DEPLOY_ID=%s
         """,
-        (deploy_id)
+        (deploy_id,)
         )
-
-        print("No SQL files found for deployment.")
+        print("No SQL files found for deployment updated status as NO_CHANGE.")
         exit(0)
 
     # ----------------------------------
@@ -217,7 +216,7 @@ try:
         deploy_id
     ))
 
-    print("Deployment Successful")
+    print("Deployment Successful updated status as SUCCESS")
 
 except Exception as e:
 
@@ -236,7 +235,7 @@ except Exception as e:
             str(e),
             deploy_id
         ))
-
+        print("Issue in deployment, updated status as FAILED")
     raise
 
 finally:
