@@ -150,6 +150,6 @@ jobs:
       #######################################################
 
       - name: Execute Deployment for dev
-        if: github.ref_name == 'main' 
+        if: github.ref_name != 'main' 
         run: |
           python deploy_git_logs.py
