@@ -1,3 +1,0 @@
-use schema BRONZE
-ALTER TABLE SLS_DATA
-ADD COLUMN ADDR varchar(100);
