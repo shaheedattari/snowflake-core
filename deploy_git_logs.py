@@ -164,7 +164,7 @@ try:
     # ----------------------------------
 
     if len(sql_files) == 0:
-        print("No SQL files changed.")
+        print("No SQL files change(s) found updating status as NO_CHANGE")
 
         cur.execute("""
         UPDATE DEPLOYMENT_HISTORY
@@ -173,7 +173,7 @@ try:
             FILES_DEPLOYED=0
         WHERE DEPLOY_ID=%s
         """,
-        (deploy_id,)
+        (deploy_id)
         )
 
         print("No SQL files found for deployment.")
@@ -204,7 +204,7 @@ try:
     # ----------------------------------
     # Deployment Successful
     # ----------------------------------
-
+    print("SQL files change(s) found updating status as SUCCESS")
     cur.execute("""
     UPDATE DEPLOYMENT_HISTORY
     SET STATUS='SUCCESS',
@@ -224,7 +224,7 @@ except Exception as e:
     print(e)
 
     if deploy_id:
-
+        print("Issue in deployment, updating status as FAILED")
         cur.execute("""
         UPDATE DEPLOYMENT_HISTORY
         SET STATUS='FAILED',
