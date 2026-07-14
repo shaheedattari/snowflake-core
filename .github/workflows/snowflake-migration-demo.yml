@@ -94,11 +94,11 @@ jobs:
           git tag --sort=-version:refname
 
       #######################################################
-      # Execute Deployment for main branch
+      # Execute Deployment for DEV/Other branch
       ######################################################## 
 
-      - name: Execute Deployment for main branch
-        if: github.ref_name == 'main'
+      - name: Execute Deployment for dev/other branch
+        if: github.ref_name != 'main'
         run: |
           python deploy_git_logs.py
 
@@ -149,7 +149,7 @@ jobs:
       # Execute Deployment
       #######################################################
 
-      - name: Execute Deployment for dev
-        if: github.ref_name != 'main' 
+      - name: Execute Deployment for main Branch
+        if: github.ref_name == 'main' 
         run: |
           python deploy_git_logs.py
