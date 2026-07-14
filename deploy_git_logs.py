@@ -167,17 +167,18 @@ try:
     if len(sql_files) == 0:
         print("No SQL files change(s) found updating status as NO_CHANGE")
 
-        cur.execute("""
+    cur.execute("""
         UPDATE DEPLOYMENT_HISTORY
         SET STATUS='NO_CHANGE',
             END_TIME=CURRENT_TIMESTAMP(),
             FILE_COUNT=0
         WHERE DEPLOY_ID=%s
-        """,
-        (deploy_id,)
-        )
-        print("No SQL files found for deployment updated status as NO_CHANGE.")
-        exit(0)
+    """,
+    (deploy_id,)
+    )
+
+    print("No SQL files found for deployment updated status as NO_CHANGE.")
+    exit(0)
 
     # ----------------------------------
     # Execute SQL Files
@@ -205,29 +206,33 @@ try:
     # Deployment Successful
     # ----------------------------------
     try:
-
         print("SQL files change(s) found updating status as SUCCESS")
+
         sql_files_list = ",".join(sql_files)
+
         print(f"file list : {sql_files_list}")
-        print(f"sql_files : {sql_files}") 
+        print(f"sql_files : {sql_files}")
         print(f"deploy_id : {deploy_id}")
+
         cur.execute("""
-        UPDATE DEPLOYMENT_HISTORY
-        SET STATUS='SUCCESS',
-            END_TIME=CURRENT_TIMESTAMP(),
-            FILE_COUNT=%s,
-            FILES_DEPLOYED=%s
-        WHERE DEPLOY_ID=%s
+            UPDATE DEPLOYMENT_HISTORY
+            SET STATUS='SUCCESS',
+                END_TIME=CURRENT_TIMESTAMP(),
+                FILE_COUNT=%s,
+                FILES_DEPLOYED=%s
+            WHERE DEPLOY_ID=%s
         """,
         (
             len(sql_files),
             sql_files_list,
             deploy_id
         ))
+
         print("Deployment Successful updated status as SUCCESS")
         print("Rows affected:", cur.rowcount)
+
         conn.commit()
-        
+       
     except Exception as e1:
         print("Update failed:", e1)
 
@@ -240,18 +245,20 @@ except Exception as e:
         try:
             print("Issue in deployment, updating status as FAILED")
 
-            cur.execute("""
+            cur.execute(
+                """
                 UPDATE DEPLOYMENT_HISTORY
                 SET STATUS = 'FAILED',
                     END_TIME = CURRENT_TIMESTAMP(),
-                    FILE_COUNT=0,
+                    FILE_COUNT = 0,
                     ERROR_MESSAGE = %s
                 WHERE DEPLOY_ID = %s
-            """,
-            (
-                str(e),
-                deploy_id
-            ))
+                """,
+                (
+                    str(e),
+                    deploy_id
+                )
+            )
 
             print("Issue in deployment, updated status as FAILED")
 
