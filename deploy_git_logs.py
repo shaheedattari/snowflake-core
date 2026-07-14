@@ -170,7 +170,7 @@ try:
         UPDATE DEPLOYMENT_HISTORY
         SET STATUS='NO_CHANGE',
             END_TIME=CURRENT_TIMESTAMP(),
-            FILE_COUNT=0,
+            FILE_COUNT=0
         WHERE DEPLOY_ID=%s
         """,
         (deploy_id,)
