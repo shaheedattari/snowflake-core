@@ -18,7 +18,6 @@ conn = snowflake.connector.connect(
 )
 
 cur = conn.cursor()
-
 deploy_id = None
 
 try:
@@ -165,20 +164,22 @@ try:
     # ----------------------------------
 
     if len(sql_files) == 0:
-        print("No SQL files change(s) found updating status as NO_CHANGE")
+        print("No SQL files change(s) found. Updating status as NO_CHANGE")
 
-    cur.execute("""
-        UPDATE DEPLOYMENT_HISTORY
-        SET STATUS='NO_CHANGE',
-            END_TIME=CURRENT_TIMESTAMP(),
-            FILE_COUNT=0
-        WHERE DEPLOY_ID=%s
-    """,
-    (deploy_id,)
-    )
-
-    print("No SQL files found for deployment updated status as NO_CHANGE.")
-    exit(0)
+        cur.execute(
+            """
+            UPDATE DEPLOYMENT_HISTORY
+            SET STATUS = 'NO_CHANGE',
+                END_TIME = CURRENT_TIMESTAMP(),
+                FILE_COUNT = 0
+            WHERE DEPLOY_ID = %s
+            """,
+            (
+                deploy_id,
+            )
+        )
+        print("No SQL files found for deployment. Updated status as NO_CHANGE.")
+        exit(0)
 
     # ----------------------------------
     # Execute SQL Files
@@ -214,19 +215,21 @@ try:
         print(f"sql_files : {sql_files}")
         print(f"deploy_id : {deploy_id}")
 
-        cur.execute("""
+        cur.execute(
+            """
             UPDATE DEPLOYMENT_HISTORY
             SET STATUS='SUCCESS',
                 END_TIME=CURRENT_TIMESTAMP(),
                 FILE_COUNT=%s,
                 FILES_DEPLOYED=%s
             WHERE DEPLOY_ID=%s
-        """,
-        (
-            len(sql_files),
-            sql_files_list,
-            deploy_id
-        ))
+            """,
+            (
+                len(sql_files),
+                sql_files_list,
+                deploy_id
+            )
+        )
 
         print("Deployment Successful updated status as SUCCESS")
         print("Rows affected:", cur.rowcount)
