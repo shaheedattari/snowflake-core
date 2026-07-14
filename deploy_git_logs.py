@@ -210,7 +210,7 @@ try:
         sql_files_list = ",".join(sql_files)
         print(f"file list : {sql_files_list}")
         print(f"sql_files : {sql_files}") 
-         print(f"deploy_id : {deploy_id}")
+        print(f"deploy_id : {deploy_id}")
         cur.execute("""
         UPDATE DEPLOYMENT_HISTORY
         SET STATUS='SUCCESS',
