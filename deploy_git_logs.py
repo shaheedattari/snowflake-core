@@ -214,7 +214,7 @@ try:
     """,
     (
         len(sql_files),
-        sql_files,
+        ",".join(sql_files),
         deploy_id
     ))
 
