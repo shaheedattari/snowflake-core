@@ -203,22 +203,29 @@ try:
     # ----------------------------------
     # Deployment Successful
     # ----------------------------------
-    print("SQL files change(s) found updating status as SUCCESS")
-    cur.execute("""
-    UPDATE DEPLOYMENT_HISTORY
-    SET STATUS='SUCCESS',
-        END_TIME=CURRENT_TIMESTAMP(),
-        FILE_COUNT=%s,
-        FILES_DEPLOYED=%s
-    WHERE DEPLOY_ID=%s
-    """,
-    (
-        len(sql_files),
-        ",".join(sql_files),
-        deploy_id
-    ))
+    try:
 
-    print("Deployment Successful updated status as SUCCESS")
+        print("SQL files change(s) found updating status as SUCCESS")
+        cur.execute("""
+        UPDATE DEPLOYMENT_HISTORY
+        SET STATUS='SUCCESS',
+            END_TIME=CURRENT_TIMESTAMP(),
+            FILE_COUNT=%s,
+            FILES_DEPLOYED=%s
+        WHERE DEPLOY_ID=%s
+        """,
+        (
+            len(sql_files),
+            ",".join(sql_files),
+            deploy_id
+        ))
+
+        print("Deployment Successful updated status as SUCCESS")
+        print("Rows affected:", cur.rowcount)
+        conn.commit()
+        
+    except Exception as e1:
+        print("Update failed:", e1)
 
 except Exception as e:
 
