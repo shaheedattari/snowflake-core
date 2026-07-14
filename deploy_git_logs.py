@@ -233,6 +233,7 @@ except Exception as e:
                 UPDATE DEPLOYMENT_HISTORY
                 SET STATUS = 'FAILED',
                     END_TIME = CURRENT_TIMESTAMP(),
+                    FILE_COUNT=0,
                     ERROR_MESSAGE = %s
                 WHERE DEPLOY_ID = %s
             """,
