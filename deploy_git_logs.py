@@ -153,7 +153,8 @@ try:
         f for f in changed_files
         if f.endswith(".sql")
     ]
-
+    sql_files_list = ",".join(sql_files)
+    print(f"file list : {sql_files_list}")
     print("Changed SQL files:")
 
     for file_name in sql_files:
@@ -216,7 +217,7 @@ try:
         """,
         (
             len(sql_files),
-            ",".join(sql_files),
+            sql_files_list,
             deploy_id
         ))
 
