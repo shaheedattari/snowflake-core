@@ -100,7 +100,7 @@ jobs:
       - name: Execute Deployment for dev/other branch
         if: github.ref_name != 'main'
         run: |
-          python deploy/deploy.py
+          python scripts/deploy.py
 
       #######################################################
       # Create Git Tag
@@ -152,4 +152,4 @@ jobs:
       - name: Execute Deployment for main Branch
         if: github.ref_name == 'main' 
         run: |
-          python deploy/deploy.py
+          python scripts/deploy.py
