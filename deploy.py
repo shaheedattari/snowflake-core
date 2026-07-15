@@ -125,8 +125,7 @@ try:
 
     if len(sql_files) == 0:
         print(f"No SQL files change(s) found. Updating status as NO_CHANGE for DEPLOY_ID: {deploy_id}")
-        # sql_update = "UPDATE DEPLOYMENT_HISTORY SET STATUS = 'NO_CHANGE', END_TIME = CURRENT_TIMESTAMP(), FILE_COUNT = 0 WHERE DEPLOY_ID = %s", (deploy_id,)
-        # cur.execute(sql_update)
+        
         sql_update = "UPDATE DEPLOYMENT_HISTORY SET STATUS = 'NO_CHANGE', END_TIME = CURRENT_TIMESTAMP(), FILE_COUNT = 0 WHERE DEPLOY_ID = %s"
         cur.execute(sql_update, (deploy_id,))
         
@@ -158,11 +157,10 @@ try:
         print(f"SQL files change(s) found updating status as SUCCESS for DEPLOY_ID: {deploy_id}")
 
         sql_files_list = ",".join(sql_files)
-
         print(f"file list : {sql_files_list}")
         print(f"sql_files : {sql_files}")
         print(f"deploy_id : {deploy_id}")
-        # cur.execute("UPDATE DEPLOYMENT_HISTORY SET STATUS='SUCCESS', END_TIME=CURRENT_TIMESTAMP(), FILE_COUNT=%s, FILES_DEPLOYED=%s WHERE DEPLOY_ID=%s", (len(sql_files), sql_files_list, deploy_id))
+        
         sql_update = "UPDATE DEPLOYMENT_HISTORY SET STATUS='SUCCESS', END_TIME=CURRENT_TIMESTAMP(), FILE_COUNT=%s, FILES_DEPLOYED=%s WHERE DEPLOY_ID=%s"
         cur.execute(sql_update, (len(sql_files), sql_files_list, deploy_id))
 
