@@ -1,3 +1,3 @@
-create_sls_data4.sql
-alter_sls_data4.sql
-create_sls_data4_VW.sql
+sql/create_sls_data4.sql
+sql/alter_sls_data4.sql
+sql/create_sls_data4_VW.sql
