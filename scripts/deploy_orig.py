@@ -84,47 +84,8 @@ try:
         print("First release detected.")
         print("Deploying all SQL files.")
 
-        # changed_files = subprocess.check_output(["git", "ls-files"]).decode().splitlines()
-        # ----------------------------------
-        # Read deployment descriptor
-        # ----------------------------------
-        descriptor_file = "deploy/deployment_descriptor.txt"
-        print(f"Reading deployment descriptor : {descriptor_file}")
+        changed_files = subprocess.check_output(["git", "ls-files"]).decode().splitlines()
 
-        if not os.path.exists(descriptor_file):
-            raise Exception(f"{descriptor_file} not found.")
-
-        sql_files = []
-
-        with open(descriptor_file, "r", encoding="utf-8") as f:
-
-            for line in f:
-                line = line.strip()
-                # Ignore blank lines
-                if line == "":
-                    continue
-                # Ignore comments
-                if line.startswith("#"):
-                    continue
-                sql_files.append(line)
-
-        print("\n Deployment Order")
-        for i, file_name in enumerate(sql_files, start=1):
-            print(f"{i}. {file_name}")
-            
-        # ----------------------------------
-        # Validate deployment files
-        # ----------------------------------
-        missing_files = []
-
-        for file_name in sql_files:
-            if not os.path.exists(file_name):
-                missing_files.append(file_name)
-        if missing_files:
-            print("\n Missing SQL Files")
-            for f in missing_files:
-                print(f)
-            raise Exception("Deployment stopped because deployment_descriptor.txt contains missing files.")
     else:
 
         current_tag = tags[0]
