@@ -3,6 +3,11 @@ import subprocess
 import snowflake.connector
 from datetime import datetime
 
+
+descriptor_file_path = "deploy/deployment_descriptor.txt"
+rollback_folder = "rollback"
+sql_files1 = []
+executed_files = []
 # ----------------------------------
 # Connect to Snowflake
 # ----------------------------------
@@ -83,20 +88,52 @@ try:
 
         print("First release detected.")
         print("Deploying all SQL files.")
-
         # changed_files = subprocess.check_output(["git", "ls-files"]).decode().splitlines()
+        # Read deployment descriptor file to get the list of SQL files to deploy
+        print(f"Reading deployment descriptor to get the list of SQL files to deploy from : {descriptor_file_path}")
+        if not os.path.exists(descriptor_file_path):
+            raise Exception(f"{descriptor_file_path} not found.")
+        with open(descriptor_file_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                # Ignore blank lines
+                if line == "":
+                    continue
+                # Ignore comments
+                if line.startswith("#"):
+                    continue
+                sql_files1.append(line)
+
+        print("\n Deployment Order")
+        for i, file_name in enumerate(sql_files1, start=1):
+            print(f"{i}. {file_name}")
+
         # ----------------------------------
-        # Read deployment descriptor
+        # Validate deployment files
         # ----------------------------------
-        descriptor_file = "deploy/deployment_descriptor.txt"
-        print(f"Reading deployment descriptor : {descriptor_file}")
+        missing_files = []
+        for file_name in sql_files1:
+            if not os.path.exists(file_name):
+                missing_files.append(file_name)
+        if missing_files:
+            print("\n Missing SQL Files")
+            for f in missing_files:
+                print(f)
+            raise Exception("Deployment stopped because deployment_descriptor.txt contains missing files.")
 
-        if not os.path.exists(descriptor_file):
-            raise Exception(f"{descriptor_file} not found.")
+    else:
+        current_tag = tags[0]
+        previous_tag = tags[1]
+        print(f"Comparing {previous_tag} -> {current_tag}")
+        
+        # changed_files = subprocess.check_output(["git","diff","--name-only",previous_tag,current_tag]).decode().splitlines()
+        # print(f"Changed files: {changed_files}")
+        # Read deployment descriptor file to get the list of SQL files to deploy
+        print(f"Reading deployment descriptor to get the list of SQL files to deploy from : {descriptor_file_path}")
+        if not os.path.exists(descriptor_file_path):
+            raise Exception(f"{descriptor_file_path} not found.")
 
-        sql_files = []
-
-        with open(descriptor_file, "r", encoding="utf-8") as f:
+        with open(descriptor_file_path, "r", encoding="utf-8") as f:
 
             for line in f:
                 line = line.strip()
@@ -106,18 +143,17 @@ try:
                 # Ignore comments
                 if line.startswith("#"):
                     continue
-                sql_files.append(line)
+                sql_files1.append(line)
 
         print("\n Deployment Order")
-        for i, file_name in enumerate(sql_files, start=1):
+        for i, file_name in enumerate(sql_files1, start=1):
             print(f"{i}. {file_name}")
-            
+
         # ----------------------------------
         # Validate deployment files
         # ----------------------------------
         missing_files = []
-
-        for file_name in sql_files:
+        for file_name in sql_files1:
             if not os.path.exists(file_name):
                 missing_files.append(file_name)
         if missing_files:
@@ -125,30 +161,13 @@ try:
             for f in missing_files:
                 print(f)
             raise Exception("Deployment stopped because deployment_descriptor.txt contains missing files.")
-    else:
-
-        current_tag = tags[0]
-        previous_tag = tags[1]
-
-        print(f"Comparing {previous_tag} -> {current_tag}")
-
-        changed_files = subprocess.check_output(
-            [
-                "git",
-                "diff",
-                "--name-only",
-                previous_tag,
-                current_tag
-            ]
-        ).decode().splitlines()
-
-        print(f"Changed files: {changed_files}")
+    
     # ----------------------------------
     # Filter SQL Files
     # ----------------------------------
 
     sql_files = [
-        f for f in changed_files
+        f for f in sql_files1
         if f.endswith(".sql")
     ]
     sql_files_list = ",".join(sql_files)
@@ -177,7 +196,7 @@ try:
 
     for file_name in sql_files:
 
-        print(f"Executing : {file_name}")
+        print(f" Started Executing : {file_name}")
 
         with open(file_name, "r", encoding="utf-8") as f:
             sql_script = f.read()
@@ -187,7 +206,8 @@ try:
             continue
 
         cur.execute(sql_script,num_statements=0)
-        print(f"Completed : {file_name}")
+        executed_files.append(file_name)   #to collect completed .sql files
+        print(f"Completed executing : {file_name}")
 
     # ----------------------------------
     # Deployment Successful
@@ -213,6 +233,50 @@ try:
 except Exception as e:
 
     print(f"Deployment failed: {e}")
+
+    # *****************************************************
+    # NEW : Rollback Starts
+    # *****************************************************
+
+    print("\n========================================")
+    print("Starting Rollback")
+    print("========================================")
+
+    executed_files.reverse()
+
+    for deployed_file in executed_files:
+
+        base_name = os.path.basename(deployed_file)
+
+        rollback_file = os.path.join(
+            rollback_folder,
+            "R_" + base_name
+        )
+
+        print(f"Rollback File : {rollback_file}")
+
+        if not os.path.exists(rollback_file):
+            print(f"Rollback script not found : {rollback_file}")
+            continue
+
+        try:
+
+            with open(rollback_file, "r", encoding="utf-8") as f:
+                rollback_sql = f.read()
+
+            if rollback_sql.strip():
+
+                cur.execute(
+                    rollback_sql,
+                    num_statements=0
+                )
+
+                print(f"Rollback completed : {rollback_file}")
+
+        except Exception as rollback_error:
+
+            print(f"Rollback failed for {rollback_file}")
+            print(rollback_error)
 
     if deploy_id is not None:
 
